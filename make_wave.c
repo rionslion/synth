@@ -176,7 +176,7 @@ double wave_generator(int melody, int x, int flag){
 	}
 	/* after decay */
 	else{
-	  tmp_wave += style[i].volume*style[i].sustain * sin(2*PI*freq[melody+12*(style[i].key-2)]*x/(SAMPLING_RATE*100));
+	  tmp_wave += (style[i].volume*style[i].sustain * sin(2*PI*freq[melody+12*(style[i].key-2)]*x/(SAMPLING_RATE)))/100;
 	}
       }
       /* other wave */
@@ -212,6 +212,10 @@ void output_wave(void){
     for(i=0;i<SAMPLING_RATE;i++){
       printf("%d\n",wave[i][j]);
       if(wave[i][j] != 0) fin_flag = 0;
+      if(wave[i][j] >60000){
+	printf("BIG %d %d\n",i,j);
+	exit(1);
+      }
     }
     if(fin_flag) break;
   }
