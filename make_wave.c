@@ -142,8 +142,8 @@ void make_wave(void){
     x = finish_wave;
     /* loop finish time to more 1 sec for release*/
     while(1){
-      if(t==finish_sec+1 && x == finish_wave) break;
-      wave[x][t] += velocity * wave_generator(melody, x-finish_wave, 1);
+      if(t==finish_sec+1 && (x%SAMPLING_RATE) == finish_wave) break;
+      wave[x%SAMPLING_RATE][t] += velocity * wave_generator(melody, x-finish_wave, 1);
       x++;
       if(x%SAMPLING_RATE == 0) t++;
     }
