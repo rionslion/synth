@@ -37,7 +37,7 @@ int velocity_finish[WAVE_STYLE_NUM][SAMPLING_RATE];
 
 void velocity_set(void);
 void make_wave(void);
-double wave_generator(int melody, int x, int flag);
+double wave_generator(int melody, int x, int t);
 void output_wave(void);
 
 int main(void){
@@ -132,17 +132,18 @@ void make_wave(void){
     /* loop start time to finish time */
     /* wave[start_wave][start_sec] ~ wave[finish_wave][finish_sec] */
     while(1){
-      if(t==finish_sec && (x%SAMPLING_RATE)==finish_wave) break;
+      if(t==finish_sec && (x%SAMPLING_RATE) == finish_wave) break;
       wave[x%SAMPLING_RATE][t] += velocity * wave_generator(melody, x-start_wave, 0);
       x++;
       if(x%SAMPLING_RATE == 0) t++; 
     }
 
-    t = finish_sec;
+    tmp = x;
+
     /* loop finish time to more 1 sec for release*/
     while(1){
       if(t==finish_sec+1 && (x%SAMPLING_RATE) == finish_wave) break;
-      wave[x%SAMPLING_RATE][t] += velocity * wave_generator(melody, x-start_wave, 1);
+      wave[x%SAMPLING_RATE][t] += velocity * wave_generator(melody, x-start_wave, x-tmp);
       x++;
       if(x%SAMPLING_RATE == 0) t++;
     }
@@ -151,7 +152,7 @@ void make_wave(void){
   }
 }
 
-double wave_generator(int melody, int x, int flag){
+double wave_generator(int melody, int x, int t){
   double freq[MELODY_NUM] = {0.0, 
       32.703, 34.648, 36.708, 38.891, 41.203, 43.654, 46.249, 48.999, 51.913, 55.0, 58.270, 61.735,
       65.406, 69.296, 73.416, 77.782, 82.407, 87.307, 92.499, 97.999, 103.826, 110.0, 116.541, 123.471,
@@ -165,7 +166,7 @@ double wave_generator(int melody, int x, int flag){
   int i;
 
   /* start wave */
-  if(flag == 0){
+  if(t == 0){
     for(i=0; i<WAVE_STYLE_NUM;i++){
       /* SIN wave */
       if(style[i].form == SIN){
@@ -175,7 +176,7 @@ double wave_generator(int melody, int x, int flag){
 	}
 	/* after decay */
 	else{
-	  tmp_wave += (style[i].volume*style[i].sustain * sin(2*PI*freq[melody+12*(style[i].key-2)]*x/(SAMPLING_RATE)))/100;
+	  tmp_wave += (style[i].volume*style[i].sustain * sin(2*PI*freq[melody+12*(style[i].key-2)]*x/SAMPLING_RATE))/100;
 	}
       }
       /* other wave */
@@ -184,12 +185,12 @@ double wave_generator(int melody, int x, int flag){
   }
 
   /* finish wave */
-  if(flag == 1){
+  else {
     for(i=0; i<WAVE_STYLE_NUM;i++){
       /* SIN wave */
       if(style[i].form == SIN){
-	if(x<style[i].release){
-	  tmp_wave += velocity_finish[i][x] * sin(2*PI*freq[melody+12*(style[i].key-2)]*x/SAMPLING_RATE);
+	if(t<style[i].release){
+	  tmp_wave += velocity_finish[i][t] * sin(2*PI*freq[melody+12*(style[i].key-2)]*x/SAMPLING_RATE);
 	}
       }
 
