@@ -194,28 +194,28 @@ double wave_generator(int melody, int x, int t){
 	/* before decay */
 	if(x<style[i].attack+style[i].decay){
 	  if(df < (SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
-	    tmp_wave += velocity_start[i][x] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE;
+	    tmp_wave += 100*velocity_start[i][x] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE;
 	  }
 	  else if(df > 3*(SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
-	    tmp_wave += velocity_start[i][x] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE - 4*velocity_start[i][x];
+	    tmp_wave += 100*velocity_start[i][x] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE - 400*velocity_start[i][x];
 	    
 	  }	  
 	  else{
-	    tmp_wave += - (velocity_start[i][x] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE) + 2*velocity_start[i][x];
+	    tmp_wave += - 100*(velocity_start[i][x] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE) + 200*velocity_start[i][x];
 	  }
 	}	    
 	
 	/* after decay */
 	else{
 	  if(df < (SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
-	    tmp_wave += (style[i].volume*style[i].sustain * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE)/100;
+	    tmp_wave += (style[i].volume*style[i].sustain * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE);
 	  }
 	  else if(df > 3*(SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
-	    tmp_wave += (style[i].volume*style[i].sustain * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE - 4*style[i].volume*style[i].sustain)/100;
+	    tmp_wave += (style[i].volume*style[i].sustain * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE - 4*style[i].volume*style[i].sustain);
 	    
 	  }	  
 	  else{
-	    tmp_wave +=( - (style[i].volume*style[i].sustain * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE) + 2*style[i].volume*style[i].sustain)/100;
+	    tmp_wave +=( - (style[i].volume*style[i].sustain * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE) + 2*style[i].volume*style[i].sustain);
 	  }
 	}
       }
@@ -242,14 +242,15 @@ double wave_generator(int melody, int x, int t){
 	}
 	if(t<style[i].release){
 	  if(df < (SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
-	    tmp_wave += velocity_finish[i][t] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE;
+	    tmp_wave += 100*velocity_finish[i][t] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE;
+	    printf("%f\n",velocity_finish[i][t] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE);
 	  }
 	  else if(df > 3*(SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
-	    tmp_wave += velocity_finish[i][t] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE - 4*velocity_finish[i][t];
+	    tmp_wave += 100*velocity_finish[i][t] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE - 400*velocity_finish[i][t];
 	    
 	  }	  
 	  else{
-	    tmp_wave += - (velocity_finish[i][t] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE) + 2*velocity_finish[i][t];
+	    tmp_wave += - 100*(velocity_finish[i][t] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE) + 200*velocity_finish[i][t];
 	  }
 	}
 	
