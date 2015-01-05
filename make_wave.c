@@ -7,6 +7,7 @@
 #define SONG_LENGTH 300
 #define WAVE_STYLE_NUM 3
 #define MELODY_NUM 74
+#define VOLUME_MAX 32767
 
 #define PI 3.1416
 
@@ -109,6 +110,7 @@ void velocity_set(void){
   }
 }
 
+/* wave data making by input track data */
 void make_wave(void){
   int melody, velocity, start_sec, start_wave, finish_sec, finish_wave;
   double start_time, finish_time;
@@ -152,6 +154,7 @@ void make_wave(void){
   }
 }
 
+/* wave data generate by melody */
 double wave_generator(int melody, int x, int t){
   double freq[MELODY_NUM] = {0.0, 
       32.703, 34.648, 36.708, 38.891, 41.203, 43.654, 46.249, 48.999, 51.913, 55.0, 58.270, 61.735,
@@ -164,6 +167,7 @@ double wave_generator(int melody, int x, int t){
 
   double tmp_wave = 0.0;
   int i;
+  double df;
 
   /* start wave */
   if(t == 0){
@@ -174,16 +178,52 @@ double wave_generator(int melody, int x, int t){
 	if(x<style[i].attack+style[i].decay){
 	  tmp_wave += velocity_start[i][x] * sin(2*PI*freq[melody+12*(style[i].key-2)]*x/SAMPLING_RATE);
 	}
+	
 	/* after decay */
 	else{
 	  tmp_wave += (style[i].volume*style[i].sustain * sin(2*PI*freq[melody+12*(style[i].key-2)]*x/SAMPLING_RATE))/100;
+	}
+      }
+      
+      /* TRIANGLE wave */
+      else if(style[i].form == TRIANGLE){
+	df = x;
+	while(df > SAMPLING_RATE/freq[melody+12*(style[i].key-2)]){
+	  df -= SAMPLING_RATE/freq[melody+12*(style[i].key-2)];
+	}
+	/* before decay */
+	if(x<style[i].attack+style[i].decay){
+	  if(df < (SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
+	    tmp_wave += velocity_start[i][x] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE;
+	  }
+	  else if(df > 3*(SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
+	    tmp_wave += velocity_start[i][x] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE - 4*velocity_start[i][x];
+	    
+	  }	  
+	  else{
+	    tmp_wave += - (velocity_start[i][x] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE) + 2*velocity_start[i][x];
+	  }
+	}	    
+	
+	/* after decay */
+	else{
+	  if(df < (SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
+	    tmp_wave += (style[i].volume*style[i].sustain * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE)/100;
+	  }
+	  else if(df > 3*(SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
+	    tmp_wave += (style[i].volume*style[i].sustain * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE - 4*style[i].volume*style[i].sustain)/100;
+	    
+	  }	  
+	  else{
+	    tmp_wave +=( - (style[i].volume*style[i].sustain * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE) + 2*style[i].volume*style[i].sustain)/100;
+	  }
 	}
       }
       /* other wave */
       else tmp_wave += 0.0;
     }
   }
-
+  
   /* finish wave */
   else {
     for(i=0; i<WAVE_STYLE_NUM;i++){
@@ -193,17 +233,38 @@ double wave_generator(int melody, int x, int t){
 	  tmp_wave += velocity_finish[i][t] * sin(2*PI*freq[melody+12*(style[i].key-2)]*x/SAMPLING_RATE);
 	}
       }
-
+      
+      /* TRIANGLE wave */
+      if(style[i].form == TRIANGLE){
+	df = x;
+	while(df > SAMPLING_RATE/freq[melody+12*(style[i].key-2)]){
+	  df -= SAMPLING_RATE/freq[melody+12*(style[i].key-2)];
+	}
+	if(t<style[i].release){
+	  if(df < (SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
+	    tmp_wave += velocity_finish[i][t] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE;
+	  }
+	  else if(df > 3*(SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
+	    tmp_wave += velocity_finish[i][t] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE - 4*velocity_finish[i][t];
+	    
+	  }	  
+	  else{
+	    tmp_wave += - (velocity_finish[i][t] * 4*df*freq[melody+12*(style[i].key-2)]/SAMPLING_RATE) + 2*velocity_finish[i][t];
+	  }
+	}
+	
+      }
       /* other wave */
       else tmp_wave += 0.0;
     }
   }
-
+  
   return tmp_wave;
-
-
+  
+  
 }
 
+/* output wave data */
 void output_wave(void){
   int i, j, fin_flag;
 
@@ -212,7 +273,7 @@ void output_wave(void){
     for(i=0;i<SAMPLING_RATE;i++){
       printf("%d\n",wave[i][j]);
       if(wave[i][j] != 0) fin_flag = 0;
-      if(wave[i][j] >60000){
+      if(wave[i][j] > VOLUME_MAX || wave[i][j] < -(VOLUME_MAX)){
 	printf("BIG %d %d\n",i,j);
 	exit(1);
       }
