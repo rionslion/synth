@@ -235,7 +235,7 @@ double wave_generator(int melody, int x, int t){
       }
       
       /* TRIANGLE wave */
-      if(style[i].form == TRIANGLE){
+      else if(style[i].form == TRIANGLE){
 	df = x;
 	while(df > SAMPLING_RATE/freq[melody+12*(style[i].key-2)]){
 	  df -= SAMPLING_RATE/freq[melody+12*(style[i].key-2)];
