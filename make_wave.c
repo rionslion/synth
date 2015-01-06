@@ -251,7 +251,7 @@ double wave_generator(int melody, int x, int t){
 	    tmp_wave += style[i].volume*style[i].sustain/100;
 	  }
 	  else{
-	    tmp_wave += style[i].volume*style[i].sustain/100;
+	    tmp_wave += -style[i].volume*style[i].sustain/100;
 	  }
 	}
       }
