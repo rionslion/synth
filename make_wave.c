@@ -169,15 +169,15 @@ double wave_generator(int melody, int x, int t){
   int i;
   double df;
 
-  /* calc diff */
-  df = x;
-  while(df > SAMPLING_RATE/freq[melody+12*(style[i].key-2)]){
-    df -= SAMPLING_RATE/freq[melody+12*(style[i].key-2)];
-  }
-
   /* start wave */
   if(t == 0){
     for(i=0; i<WAVE_STYLE_NUM;i++){
+      /* calc diff */
+      df = x;
+      while(df > SAMPLING_RATE/freq[melody+12*(style[i].key-2)]){
+	df -= SAMPLING_RATE/freq[melody+12*(style[i].key-2)];
+      }
+
       /* SIN wave */
       if(style[i].form == SIN){
 	/* before decay */
