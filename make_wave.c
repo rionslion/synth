@@ -248,10 +248,10 @@ double wave_generator(int melody, int x, int t){
 	/* after decay */
 	else{
 	  if(df < SAMPLING_RATE/freq[melody+12*(style[i].key-2)]/2){
-	    tmp_wave += style[i].volume*style[i].sustain;
+	    tmp_wave += style[i].volume*style[i].sustain/100;
 	  }
 	  else{
-	    tmp_wave += style[i].volume*style[i].sustain;
+	    tmp_wave += style[i].volume*style[i].sustain/100;
 	  }
 	}
       }
