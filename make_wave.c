@@ -264,6 +264,12 @@ double wave_generator(int melody, int x, int t){
   /* finish wave */
   else {
     for(i=0; i<WAVE_STYLE_NUM;i++){
+      /* calc diff */
+      df = x;
+      while(df > SAMPLING_RATE/freq[melody+12*(style[i].key-2)]){
+	df -= SAMPLING_RATE/freq[melody+12*(style[i].key-2)];
+      }
+
       /* SIN wave */
       if(style[i].form == SIN){
 	if(t<style[i].release){
