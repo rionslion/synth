@@ -7,15 +7,17 @@
 #define DATA_MAX 44100*300
 #define VALUE_MAX 32765
 
+double sum[DATA_MAX];
+
 int main(int argc, char *argv[]){
   FILE *f[TRACK_MAX];
   int flag[TRACK_MAX], flag2;
-  double n[TRACK_MAX], sum[DATA_MAX];
+  double n[TRACK_MAX];
   int i, max, data;
   long j, t;
 
   /* file load */
-  if(argc < 3){
+  if(argc < 2){
     printf("Usage: a.out file1 file2 ...\n");
     exit(1);
   }
@@ -39,7 +41,9 @@ int main(int argc, char *argv[]){
   while(1){
     sum[t] = 0.0;
     for(i=0; i<argc-1; i++){
-      if(flag[i] != EOF) flag[i] = fscanf(f[i], "%lf", &n[i]);
+      if(flag[i] != EOF){
+	flag[i] = fscanf(f[i], "%lf", &n[i]);
+      }
       else n[i] = 0.0;
       sum[t] += n[i];
     }
@@ -50,6 +54,7 @@ int main(int argc, char *argv[]){
       max = -sum[t];
     }
 
+    t++;
     flag2 = 1;
     for(i=0; i<argc-1; i++){
       if(flag[i] != EOF){
@@ -57,14 +62,12 @@ int main(int argc, char *argv[]){
 	break;
       }
     }
-    t++;
     if(flag2) break;
   }
 
-
   /* put */
   for(j=0; j<t; j++){
-    data = sum[t]/max*VALUE_MAX;
+    data = sum[j];
     printf("%d\n",data);
   }
 
