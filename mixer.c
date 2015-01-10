@@ -3,45 +3,69 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define TRACK_MAX 10
+#define DATA_MAX 44100*300
+#define VALUE_MAX 32765
+
 int main(int argc, char *argv[]){
-  FILE *f1, *f2;
-  int flag1, flag2;
-  double n1, n2;
-  int sum;
+  FILE *f[TRACK_MAX];
+  int flag[TRACK_MAX], flag2;
+  double n[TRACK_MAX], sum[DATA_MAX];
+  int i, max, data;
+  long j, t;
 
   /* file load */
-  if(argc != 3){
-    printf("Usage: a.out file1 file2\n");
+  if(argc < 3){
+    printf("Usage: a.out file1 file2 ...\n");
+    exit(1);
+  }
+  else if(argc > TRACK_MAX+1){
+    printf("too much track.\n");
     exit(1);
   }
 
-  f1 = fopen(argv[1], "r");
-  if(f1 == NULL){
-    printf("cannot open %s.\n",argv[1]);
-    exit(1);
-  }
-
-  f2 = fopen(argv[2], "r");
-  if(f2 == NULL){
-    printf("cannot open %s.\n",argv[2]);
-    exit(1);
+  for(i=0; i<argc-1; i++){
+    f[i] = fopen(argv[i+1], "r");
+    if(f[i] == NULL){
+      printf("cannot open %s.\n",argv[i+1]);
+      exit(1);
+    }
+    flag[i] = 0;
   }
   
-  /* add and putout */
-  flag1 = 0;
-  flag2 = 0;
-
+  /* add */
+  max = 0.0;
+  t = 0;
   while(1){
-    if(flag1 != EOF) flag1 = fscanf(f1, "%lf", &n1);
-    else n1 = 0.0;
+    sum[t] = 0.0;
+    for(i=0; i<argc-1; i++){
+      if(flag[i] != EOF) flag[i] = fscanf(f[i], "%lf", &n[i]);
+      else n[i] = 0.0;
+      sum[t] += n[i];
+    }
+    if(sum[t] > max){
+      max = sum[t];
+    }
+    else if(sum[t]<0 && -sum[t] > max){
+      max = -sum[t];
+    }
 
-    if(flag2 != EOF) flag2 = fscanf(f2, "%lf", &n2);
-    else n2 = 0.0;
+    flag2 = 1;
+    for(i=0; i<argc-1; i++){
+      if(flag[i] != EOF){
+	flag2 = 0;
+	break;
+      }
+    }
+    t++;
+    if(flag2) break;
+  }
 
-    sum = n1 + n2;
-    printf("%d\n",sum);
 
-    if(flag1 == EOF && flag2 == EOF) break;
+  /* put */
+  for(j=0; j<t; j++){
+    data = sum[t]/max*VALUE_MAX;
+    printf("%d\n",data);
   }
 
   return 0;
