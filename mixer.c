@@ -6,7 +6,7 @@
 int main(int argc, char *argv[]){
   FILE *f1, *f2;
   int flag1, flag2;
-  int n1, n2;
+  double n1, n2;
 
   /* file load */
   if(argc != 3){
@@ -26,17 +26,17 @@ int main(int argc, char *argv[]){
     exit(1);
   }
   
-  /* add and put */
+  /* add and putout */
   flag1 = 0;
   flag2 = 0;
 
   while(1){
-    if(flag1 != EOF) flag1 = fscanf(f1, "%d", &n1);
+    if(flag1 != EOF) flag1 = fscanf(f1, "%lf", &n1);
     else n1 = 0;
 
-    if(flag2 != EOF) flag2 = fscanf(f2, "%d", &n2);
+    if(flag2 != EOF) flag2 = fscanf(f2, "%lf", &n2);
     else n2 = 0;
-    printf("%d\n",n1+n2);
+    printf("%d\n",(int)n1+n2);
 
     if(flag1 == EOF && flag2 == EOF) break;
   }
