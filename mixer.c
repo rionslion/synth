@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
 
   /* put */
   for(j=0; j<t; j++){
-    data = sum[j];
+    data = sum[j]/max*SAMPLING_RATE;
     printf("%d\n",data);
   }
 
