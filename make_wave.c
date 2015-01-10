@@ -333,7 +333,7 @@ void output_wave(void){
 	for(k=0; k<zero_count; k++){
 	  printf("0.0\n");
 	}
-	zero_count = 0
+	zero_count = 0;
 	printf("%f\n",wave[i][j]);
       }
       else{
