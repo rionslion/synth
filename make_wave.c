@@ -18,7 +18,7 @@
 #define PULSE 'p'
 
 /* wave data */
-int wave[SAMPLING_RATE][SONG_LENGTH];
+double wave[SAMPLING_RATE][SONG_LENGTH];
 
 /* track wave style */
 struct wave_parameter{
@@ -324,21 +324,23 @@ double wave_generator(int melody, int x, int t){
 
 /* output wave data */
 void output_wave(void){
-  int i, j, fin_flag;
+  int i, j, k, zero_count;
 
+  zero_count = 0;
   for(j=0;j<SONG_LENGTH;j++){
-    fin_flag = 1;
     for(i=0;i<SAMPLING_RATE;i++){
-      printf("%d\n",wave[i][j]);
       if(wave[i][j] != 0){
-	fin_flag = 0;
+	for(k=0; k<zero_count; k++){
+	  printf("0.0\n");
+	}
+	printf("%f\n",wave[i][j]);
       }
-      if(wave[i][j] > VOLUME_MAX || wave[i][j] < -(VOLUME_MAX)){
-	printf("BIG %d %d\n",i,j);
-	exit(1);
+      else{
+	zero_count++;
+	if(zero_count > SAMPLING_RATE) break;
       }
     }
-    if(fin_flag) break;
+    if(zero_count > SAMPLING_RATE) break;
   }
 }
 
