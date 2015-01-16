@@ -244,7 +244,7 @@ long datawrite(unsigned short ch, unsigned short byte,
             // 16 ビット
             else if (byte == 2) {
                 datacheck(left, SHRT_MAX, SHRT_MIN);
-                fwrite(&left, sizeof(short), 1, wav);
+                fwrite(&left, 2, 1, wav);
                 count++;
             }
         }
@@ -262,8 +262,8 @@ long datawrite(unsigned short ch, unsigned short byte,
             else if (byte == 2) {
                 datacheck(left, SHRT_MAX, SHRT_MIN);
                 datacheck(right, SHRT_MAX, SHRT_MIN);
-                fwrite(&left, sizeof(short), 1, wav);
-                fwrite(&right, sizeof(short), 1, wav);
+                fwrite(&left, 2, 1, wav);
+                fwrite(&right, 2, 1, wav);
                 count++;
             }
         }
@@ -344,7 +344,7 @@ void wavwrite(char *datafile, char *wavfile, unsigned long sr)
     fwrite(s, 1, 4, fp2);
     // ファイルサイズ
     var_long = file_size + 36;
-    fwrite(&var_long, sizeof(long), 1, fp2);
+    fwrite(&var_long, 4, 1, fp2);
     printf("  file size (header + data) = %ld [Byte]\n", var_long);
 
     // WAVE ヘッダ
@@ -362,27 +362,27 @@ void wavwrite(char *datafile, char *wavfile, unsigned long sr)
     fwrite(s, 1, 4, fp2);
     // chunkSize (fmt チャンクのバイト数 無圧縮 wav は 16)
     var_long = 16;
-    fwrite(&var_long, sizeof(long), 1, fp2);
+    fwrite(&var_long, 4, 1, fp2);
     // wFromatTag (無圧縮 PCM = 1)
     var_short = PCM;
-    fwrite(&var_short, sizeof(short), 1, fp2);
+    fwrite(&var_short, 2, 1, fp2);
     // dwChannels (モノラル = 1, ステレオ = 2)
     fwrite(&ch, 2, 1, fp2);
     printf("  PCM type                  = %hu\n", var_short);
     // dwSamplesPerSec (サンプリングレート(Hz))
-    fwrite(&sr, sizeof(long), 1, fp2);
+    fwrite(&sr, 4, 1, fp2);
     printf("  sampling rate             = %ld [Hz]\n", sr);
     // wdAvgBytesPerSec (Byte/秒)
     var_long = bytes * ch * sr;
-    fwrite(&var_long, sizeof(long), 1, fp2);
+    fwrite(&var_long, 4, 1, fp2);
     printf("  Byte / second             = %ld [Byte]\n", var_long);
     // wBlockAlign (Byte/サンプル*チャンネル)
     var_short = bytes * ch;
-    fwrite(&var_short, sizeof(short), 1, fp2);
+    fwrite(&var_short, 2, 1, fp2);
     printf("  Byte / block              = %hu [Byte]\n", var_short);
     // wBitsPerSample (bit/サンプル)
     var_short = bytes * 8;
-    fwrite(&var_short, sizeof(short), 1, fp2);
+    fwrite(&var_short, 2, 1, fp2);
     printf("  bit / sample              = %hu [bit]\n", var_short);
 
     // chunkID (data チャンク)
