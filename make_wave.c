@@ -41,7 +41,7 @@ double velocity_finish[WAVE_STYLE_NUM][SAMPLING_RATE];
 
 void velocity_set(void);
 void make_wave(void);
-double wave_generator(int melody, int x, int t);
+double wave_generator(int x, int t);
 void output_wave(void);
 
 int main(void){
@@ -144,7 +144,7 @@ void make_wave(void){
     /* wave[start_wave][start_sec] ~ wave[finish_wave][finish_sec] */
     while(1){
       if(t==finish_sec && (x%SAMPLING_RATE) == finish_wave) break;
-      wave[x%SAMPLING_RATE][t] += velocity * wave_generator(melody, x-start_wave, 0);
+      wave[x%SAMPLING_RATE][t] += velocity * wave_generator(x-start_wave, 0);
       x++;
       if(x%SAMPLING_RATE == 0) t++; 
     }
@@ -154,7 +154,7 @@ void make_wave(void){
     /* loop finish time to more 1 sec for release*/
     while(1){
       if(t==finish_sec+1 && (x%SAMPLING_RATE) == finish_wave) break;
-      wave[x%SAMPLING_RATE][t] += velocity * wave_generator(melody, x-start_wave, x-tmp);
+      wave[x%SAMPLING_RATE][t] += velocity * wave_generator(x-start_wave, x-tmp);
       x++;
       if(x%SAMPLING_RATE == 0) t++;
     }
@@ -164,20 +164,18 @@ void make_wave(void){
 }
 
 /* wave data generate by melody */
-double wave_generator(int melody, int x, int t){
+double wave_generator(int x, int t){
 
   double tmp_wave = 0.0;
-  int i;
+  int i, j;
   double df, f;
 
   /* start wave */
   if(t == 0){
     for(i=0; i<WAVE_STYLE_NUM;i++){
       /* calc diff */
-      df = x;
-      while(df > SAMPLING_RATE/freq[i]){
-	df -= SAMPLING_RATE/freq[i];
-      }
+      j = x/(SAMPLING_RATE/freq[i]);
+      df = x-j*(SAMPLING_RATE/freq[i]);
 
       /* SIN wave */
       if(style[i].form == SIN){
@@ -265,10 +263,8 @@ double wave_generator(int melody, int x, int t){
   else {
     for(i=0; i<WAVE_STYLE_NUM;i++){
       /* calc diff */
-      df = x;
-      while(df > SAMPLING_RATE/freq[i]){
-	df -= SAMPLING_RATE/freq[i];
-      }
+      j = x/(SAMPLING_RATE/freq[i]);
+      df = x-j*(SAMPLING_RATE/freq[i]);
 
       /* SIN wave */
       if(style[i].form == SIN){
