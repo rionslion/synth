@@ -54,10 +54,10 @@ int main(void){
 
   /* wave_style load */
   for(i=0;i<WAVE_STYLE_NUM;i++){
-    scanf("%d",&style[i].form);
+    scanf("%c",&style[i].form);
     /* check format */
     while(style[i].form < 'a' || style[i].form > 'z'){
-      scanf("%d",&style[i].form);
+      scanf("%c",&style[i].form);
     }
     scanf("%d",&style[i].attack);
     scanf("%d",&style[i].decay);
@@ -161,8 +161,8 @@ double wave_generator(int melody, int x, int t){
       523.251, 554.365, 587.330, 622.254, 659.255, 698.456, 739.989, 783.991, 830.609};
 
   double tmp_wave = 0.0;
-  int i, f;
-  double df;
+  int i;
+  double df, f;
 
   f = freq[melody%MELODY_NUM] * (pow(2, (melody/MELODY_NUM)-MELODY_BASE));
 
@@ -325,7 +325,7 @@ void output_wave(void){
   zero_count = 0;
   for(j=0;j<SONG_LENGTH;j++){
     for(i=0;i<SAMPLING_RATE;i++){
-      if(wave[i][j] != 0){
+      if(wave[i][j] > 0.01 || wave[i][j] < -0.01){
 	for(k=0; k<zero_count; k++){
 	  printf("0.0\n");
 	}
@@ -339,5 +339,6 @@ void output_wave(void){
     }
     if(zero_count > SAMPLING_RATE) break;
   }
+  printf("0.0\n0.0\n0.0\n");
 }
 
