@@ -158,7 +158,6 @@ void make_wave(void){
       x++;
       if(x%SAMPLING_RATE == 0) t++;
     }
-
     scanf("%d",&melody);
   }
 }
