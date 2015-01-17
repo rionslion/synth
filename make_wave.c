@@ -33,6 +33,8 @@ struct wave_parameter{
 };
 struct wave_parameter style[WAVE_STYLE_NUM];
 
+double freq[WAVE_STYLE_NUM];
+
 /* velocity from adsr+v */
 double velocity_start[WAVE_STYLE_NUM][SAMPLING_RATE];
 double velocity_finish[WAVE_STYLE_NUM][SAMPLING_RATE];
@@ -54,10 +56,10 @@ int main(void){
 
   /* wave_style load */
   for(i=0;i<WAVE_STYLE_NUM;i++){
-    scanf("%c",&style[i].form);
+    style[i].form = getchar();
     /* check format */
     while(style[i].form < 'a' || style[i].form > 'z'){
-      scanf("%c",&style[i].form);
+      style[i].form = getchar();
     }
     scanf("%d",&style[i].attack);
     scanf("%d",&style[i].decay);
@@ -115,7 +117,8 @@ void velocity_set(void){
 void make_wave(void){
   int melody, velocity, start_sec, start_wave, finish_sec, finish_wave;
   double start_time, finish_time;
-  int t, x, tmp;
+  int i, t, x, tmp;
+  double melody_freq[MELODY_NUM] = {440.0, 466.164, 495.883, 523.251, 554.365, 587.330, 622.254, 659.255, 698.456, 739.989, 783.991, 830.609};
 
   scanf("%d",&melody);
 
@@ -129,6 +132,11 @@ void make_wave(void){
     /* convert to wave timing */
     start_wave = (start_time - start_sec) * SAMPLING_RATE;
     finish_wave = (finish_time - finish_sec) * SAMPLING_RATE;
+
+    /* convert melody to frequency */
+    for(i=0; i<WAVE_STYLE_NUM; i++){
+      freq[i] = melody_freq[melody%MELODY_NUM] * (pow(2, (melody/MELODY_NUM)-MELODY_BASE)) * (pow(2, (style[i].key-2)-MELODY_BASE));
+    }
 
     t = start_sec;  /* time */
     x = start_wave; /* heni */
@@ -157,34 +165,30 @@ void make_wave(void){
 
 /* wave data generate by melody */
 double wave_generator(int melody, int x, int t){
-  double freq[MELODY_NUM] = {440.0, 466.164, 495.883,
-      523.251, 554.365, 587.330, 622.254, 659.255, 698.456, 739.989, 783.991, 830.609};
 
   double tmp_wave = 0.0;
   int i;
   double df, f;
-
-  f = freq[melody%MELODY_NUM] * (pow(2, (melody/MELODY_NUM)-MELODY_BASE));
 
   /* start wave */
   if(t == 0){
     for(i=0; i<WAVE_STYLE_NUM;i++){
       /* calc diff */
       df = x;
-      while(df > SAMPLING_RATE/(f*(pow(2, (style[i].key-2)-MELODY_BASE)))){
-	df -= SAMPLING_RATE/(f*(pow(2, (style[i].key-2)-MELODY_BASE)));
+      while(df > SAMPLING_RATE/freq[i]){
+	df -= SAMPLING_RATE/freq[i];
       }
 
       /* SIN wave */
       if(style[i].form == SIN){
 	/* before decay */
 	if(x<style[i].attack+style[i].decay){
-	  tmp_wave += velocity_start[i][x] * sin(2*PI*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))*df/SAMPLING_RATE);
+	  tmp_wave += velocity_start[i][x] * sin(2*PI*freq[i]*df/SAMPLING_RATE);
 	}
 	
 	/* after decay */
 	else{
-	  tmp_wave += (style[i].volume*style[i].sustain * sin(2*PI*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))*df/SAMPLING_RATE))/100;
+	  tmp_wave += (style[i].volume*style[i].sustain * sin(2*PI*freq[i]*df/SAMPLING_RATE))/100;
 	}
       }
       
@@ -192,28 +196,28 @@ double wave_generator(int melody, int x, int t){
       else if(style[i].form == TRIANGLE){
 	/* before decay */
 	if(x<style[i].attack+style[i].decay){
-	  if(df < (SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
-	    tmp_wave += velocity_start[i][x] * 4*df*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/SAMPLING_RATE;
+	  if(df < SAMPLING_RATE/freq[i]/4){
+	    tmp_wave += velocity_start[i][x] * 4*df*freq[i]/SAMPLING_RATE;
 	  }
-	  else if(df > 3*(SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
-	    tmp_wave += velocity_start[i][x] * 4*df*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/SAMPLING_RATE - 4*velocity_start[i][x];
+	    else if(df > 3*SAMPLING_RATE/freq[i]/4){
+	    tmp_wave += velocity_start[i][x] * 4*df*freq[i]/SAMPLING_RATE - 4*velocity_start[i][x];
 	    
 	  }	  
 	  else{
-	    tmp_wave += - (velocity_start[i][x] * 4*df*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/SAMPLING_RATE) + 2*velocity_start[i][x];
+	    tmp_wave += - (velocity_start[i][x] * 4*df*freq[i]/SAMPLING_RATE) + 2*velocity_start[i][x];
 	  }
 	}	    
 	
 	/* after decay */
 	else{
-	  if(df < (SAMPLING_RATE/(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/4)){
-	      tmp_wave += (style[i].volume*style[i].sustain * 4*df*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/SAMPLING_RATE/100);
+	  if(df < (SAMPLING_RATE/freq[i]/4)){
+	      tmp_wave += (style[i].volume*style[i].sustain * 4*df*freq[i]/SAMPLING_RATE/100);
 	  }
-	  else if(df > 3*(SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
-	    tmp_wave += (style[i].volume*style[i].sustain * 4*df*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/SAMPLING_RATE - 4*style[i].volume*style[i].sustain)/100; 
+	  else if(df > 3*SAMPLING_RATE/freq[i]/4){
+	    tmp_wave += (style[i].volume*style[i].sustain * 4*df*freq[i]/SAMPLING_RATE - 4*style[i].volume*style[i].sustain)/100; 
 	  }
 	  else{
-	    tmp_wave +=( - (style[i].volume*style[i].sustain * 4*df*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/SAMPLING_RATE) + 2*style[i].volume*style[i].sustain)/100;
+	    tmp_wave +=( - (style[i].volume*style[i].sustain * 4*df*freq[i]/SAMPLING_RATE) + 2*style[i].volume*style[i].sustain)/100;
 	  }
 	}
       }
@@ -221,19 +225,19 @@ double wave_generator(int melody, int x, int t){
       else if(style[i].form == NOKOGIRI){
 	/* before decay */
 	if(x<style[i].attack+style[i].decay){
-	  tmp_wave += -velocity_start[i][x] + 2*velocity_start[i][x] * df*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/SAMPLING_RATE;
+	  tmp_wave += -velocity_start[i][x] + 2*velocity_start[i][x] * df*freq[i]/SAMPLING_RATE;
 	}
 	
 	/* after decay */
 	else{
-	  tmp_wave += (-style[i].volume*style[i].sustain + 2*style[i].volume*style[i].sustain * df*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/SAMPLING_RATE)/100;
+	  tmp_wave += (-style[i].volume*style[i].sustain + 2*style[i].volume*style[i].sustain * df*freq[i]/SAMPLING_RATE)/100;
 	}
       }
       /* PULSE wave */
       else if(style[i].form == PULSE){
 	/* before decay */
 	if(x<style[i].attack+style[i].decay){
-	  if(df < SAMPLING_RATE/(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/2){
+	  if(df < SAMPLING_RATE/freq[i]/2){
 	    tmp_wave += velocity_start[i][x];
 	  }
 	  else{
@@ -243,7 +247,7 @@ double wave_generator(int melody, int x, int t){
 	
 	/* after decay */
 	else{
-	  if(df < SAMPLING_RATE/(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/2){
+	  if(df < SAMPLING_RATE/freq[i]/2){
 	    tmp_wave += style[i].volume*style[i].sustain/100;
 	  }
 	  else{
@@ -262,29 +266,29 @@ double wave_generator(int melody, int x, int t){
     for(i=0; i<WAVE_STYLE_NUM;i++){
       /* calc diff */
       df = x;
-      while(df > SAMPLING_RATE/(f*(pow(2, (style[i].key-2)-MELODY_BASE)))){
-	df -= SAMPLING_RATE/(f*(pow(2, (style[i].key-2)-MELODY_BASE)));
+      while(df > SAMPLING_RATE/freq[i]){
+	df -= SAMPLING_RATE/freq[i];
       }
 
       /* SIN wave */
       if(style[i].form == SIN){
 	if(t<style[i].release){
-	  tmp_wave += velocity_finish[i][t] * sin(2*PI*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))*df/SAMPLING_RATE);
+	  tmp_wave += velocity_finish[i][t] * sin(2*PI*freq[i]*df/SAMPLING_RATE);
 	}
       }
       
       /* TRIANGLE wave */
       else if(style[i].form == TRIANGLE){
 	if(t<style[i].release){
-	  if(df < (SAMPLING_RATE/(f*(pow(2, (style[i].key-2)-MELODY_BASE))))/4){
-	    tmp_wave += velocity_finish[i][t] * 4*df*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/SAMPLING_RATE;
+	  if(df < SAMPLING_RATE/freq[i]/4){
+	    tmp_wave += velocity_finish[i][t] * 4*df*freq[i]/SAMPLING_RATE;
 	  }
-	  else if(df > 3*(SAMPLING_RATE/freq[melody+12*(style[i].key-2)])/4){
-	    tmp_wave += velocity_finish[i][t] * 4*df*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/SAMPLING_RATE - 4*velocity_finish[i][t];
+	  else if(df > 3*SAMPLING_RATE/freq[i]/4){
+	    tmp_wave += velocity_finish[i][t] * 4*df*freq[i]/SAMPLING_RATE - 4*velocity_finish[i][t];
 	    
 	  }	  
 	  else{
-	    tmp_wave += - (velocity_finish[i][t] * 4*df*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/SAMPLING_RATE) + 2*velocity_finish[i][t];
+	    tmp_wave += - (velocity_finish[i][t] * 4*df*freq[i]/SAMPLING_RATE) + 2*velocity_finish[i][t];
 	  }
 	}
       }
@@ -292,14 +296,14 @@ double wave_generator(int melody, int x, int t){
       /* NOKOGIRI wave */
       else if(style[i].form == NOKOGIRI){
 	if(t<style[i].release){
-	  tmp_wave += -velocity_finish[i][t] + 2*velocity_finish[i][t] * df*(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/SAMPLING_RATE;
+	  tmp_wave += -velocity_finish[i][t] + 2*velocity_finish[i][t] * df*freq[i]/SAMPLING_RATE;
 	}
       }
 
       /* PULSE wave */
       else if(style[i].form == PULSE){
 	if(t<style[i].release){
-	  if(df < SAMPLING_RATE/(f*(pow(2, (style[i].key-2)-MELODY_BASE)))/2){
+	  if(df < SAMPLING_RATE/freq[i]/2){
 	    tmp_wave += velocity_finish[i][t];
 	  }
 	  else{
