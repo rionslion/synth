@@ -5,7 +5,7 @@
 
 #define TRACK_MAX 10
 #define DATA_MAX 44100*300
-#define VALUE_MAX 32765
+#define VALUE_MAX 30000
 
 double sum[DATA_MAX];
 
